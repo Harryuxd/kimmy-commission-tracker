@@ -5,6 +5,7 @@ export default function CommissionCalculator({ staff, entries, onAddEntry, onDel
     const [salesAmount, setSalesAmount] = useState('');
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10)); // Default to Today
     const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'weekly'
+    const [filterStaff, setFilterStaff] = useState(''); // Filter by specific staff member
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -26,15 +27,18 @@ export default function CommissionCalculator({ staff, entries, onAddEntry, onDel
         setSalesAmount('');
     };
 
-    // Filter entries based on View Mode
+    // Filter entries based on View Mode AND Staff Filter
     const filteredEntries = entries.filter(entry => {
+        // 1. Staff Filter
+        if (filterStaff && entry.staffName !== filterStaff) {
+            return false;
+        }
+
         const entryDate = new Date(entry.timestamp);
         const today = new Date();
 
+        // 2. Time Mode Filter
         if (viewMode === 'daily') {
-            // "Daily" technically means "Today" in this context toggle.
-            // But if we just added a backdated entry, it won't show up in "Today".
-            // Implementation choice: Daily View = Today's date only.
             return entryDate.toDateString() === today.toDateString();
         } else {
             // Weekly: Show entries from the current week (Sunday to Saturday)
@@ -89,6 +93,25 @@ export default function CommissionCalculator({ staff, entries, onAddEntry, onDel
                 </h2>
 
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {/* Staff Filter Dropdown */}
+                    <select
+                        value={filterStaff}
+                        onChange={(e) => setFilterStaff(e.target.value)}
+                        style={{
+                            padding: '6px 12px',
+                            borderRadius: '50px',
+                            border: '1px solid #ddd',
+                            fontSize: '0.9rem',
+                            backgroundColor: '#fff',
+                            color: '#555',
+                            cursor: 'pointer',
+                            outline: 'none'
+                        }}
+                    >
+                        <option value="">All Staff</option>
+                        {staff.map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+
                     {/* View Toggle */}
                     <div style={{ background: '#f0f0f0', borderRadius: '50px', padding: '4px' }}>
                         <button
