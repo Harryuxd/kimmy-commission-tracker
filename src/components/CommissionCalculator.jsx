@@ -3,6 +3,7 @@ import { useState } from 'react';
 export default function CommissionCalculator({ staff, entries, onAddEntry, onDeleteEntry }) {
     const [selectedStaff, setSelectedStaff] = useState('');
     const [salesAmount, setSalesAmount] = useState('');
+    const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10)); // Default to Today
     const [viewMode, setViewMode] = useState('daily'); // 'daily' or 'weekly'
 
     const handleSubmit = (e) => {
@@ -12,11 +13,15 @@ export default function CommissionCalculator({ staff, entries, onAddEntry, onDel
         const amount = parseFloat(salesAmount);
         if (isNaN(amount)) return;
 
+        // Use selected date (noon) to avoid timezone shifts
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const localDate = new Date(year, month - 1, day, 12, 0, 0);
+
         onAddEntry({
             id: Date.now(),
             staffName: selectedStaff,
             salesAmount: amount,
-            timestamp: new Date().toISOString()
+            timestamp: localDate.toISOString()
         });
         setSalesAmount('');
     };
@@ -27,6 +32,9 @@ export default function CommissionCalculator({ staff, entries, onAddEntry, onDel
         const today = new Date();
 
         if (viewMode === 'daily') {
+            // "Daily" technically means "Today" in this context toggle.
+            // But if we just added a backdated entry, it won't show up in "Today".
+            // Implementation choice: Daily View = Today's date only.
             return entryDate.toDateString() === today.toDateString();
         } else {
             // Weekly: Show entries from the current week (Sunday to Saturday)
@@ -125,23 +133,42 @@ export default function CommissionCalculator({ staff, entries, onAddEntry, onDel
                 <p className="text-gold">⚠ Please add staff members first.</p>
             ) : (
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gap: '16px', marginBottom: '24px' }}>
-                    <div style={{ display: 'grid', gap: '8px' }}>
-                        <label style={{ fontWeight: 600 }}>Staff Member</label>
-                        <select
-                            value={selectedStaff}
-                            onChange={(e) => setSelectedStaff(e.target.value)}
-                            style={{
-                                padding: '12px',
-                                borderRadius: 'var(--radius)',
-                                border: '1px solid #ddd',
-                                fontSize: '1rem',
-                                backgroundColor: 'white'
-                            }}
-                            required
-                        >
-                            <option value="">Select Staff...</option>
-                            {staff.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'grid', gap: '8px', flex: 1, minWidth: '200px' }}>
+                            <label style={{ fontWeight: 600 }}>Staff Member</label>
+                            <select
+                                value={selectedStaff}
+                                onChange={(e) => setSelectedStaff(e.target.value)}
+                                style={{
+                                    padding: '12px',
+                                    borderRadius: 'var(--radius)',
+                                    border: '1px solid #ddd',
+                                    fontSize: '1rem',
+                                    backgroundColor: 'white'
+                                }}
+                                required
+                            >
+                                <option value="">Select Staff...</option>
+                                {staff.map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                        </div>
+
+                        <div style={{ display: 'grid', gap: '8px', width: '150px' }}>
+                            <label style={{ fontWeight: 600 }}>Date</label>
+                            <input
+                                type="date"
+                                value={selectedDate}
+                                onChange={(e) => setSelectedDate(e.target.value)}
+                                style={{
+                                    padding: '12px',
+                                    borderRadius: 'var(--radius)',
+                                    border: '1px solid #ddd',
+                                    fontSize: '1rem',
+                                    fontFamily: 'inherit'
+                                }}
+                                required
+                            />
+                        </div>
                     </div>
 
                     <div style={{ display: 'grid', gap: '8px' }}>
