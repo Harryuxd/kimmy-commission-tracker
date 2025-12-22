@@ -98,7 +98,7 @@ export default function CommissionCalculator({ staff, entries, onAddEntry, onDel
                         value={filterStaff}
                         onChange={(e) => setFilterStaff(e.target.value)}
                         style={{
-                            padding: '6px 12px',
+                            padding: '6px 32px 6px 16px',
                             borderRadius: '50px',
                             border: '1px solid #ddd',
                             fontSize: '0.9rem',
@@ -163,7 +163,7 @@ export default function CommissionCalculator({ staff, entries, onAddEntry, onDel
                                 value={selectedStaff}
                                 onChange={(e) => setSelectedStaff(e.target.value)}
                                 style={{
-                                    padding: '12px',
+                                    padding: '12px 32px 12px 12px',
                                     borderRadius: 'var(--radius)',
                                     border: '1px solid #ddd',
                                     fontSize: '1rem',
