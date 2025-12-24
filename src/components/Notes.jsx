@@ -7,12 +7,12 @@ import dayjs from 'dayjs';
 const { TextArea } = Input;
 
 const COLORS = [
-    { name: 'yellow', bg: '#fef08a', border: '#fbbf24', shadow: 'rgba(251, 191, 36, 0.3)' },
-    { name: 'pink', bg: '#fbcfe8', border: '#ec4899', shadow: 'rgba(236, 72, 153, 0.3)' },
-    { name: 'blue', bg: '#bfdbfe', border: '#3b82f6', shadow: 'rgba(59, 130, 246, 0.3)' },
-    { name: 'green', bg: '#bbf7d0', border: '#10b981', shadow: 'rgba(16, 185, 129, 0.3)' },
-    { name: 'purple', bg: '#e9d5ff', border: '#a855f7', shadow: 'rgba(168, 85, 247, 0.3)' },
-    { name: 'orange', bg: '#fed7aa', border: '#f97316', shadow: 'rgba(249, 115, 22, 0.3)' },
+    { name: 'yellow', bg: '#fef08a', border: '#f59e0b', shadow: 'rgba(245, 158, 11, 0.3)', circle: '#fbbf24' },
+    { name: 'pink', bg: '#fbcfe8', border: '#db2777', shadow: 'rgba(219, 39, 119, 0.3)', circle: '#ec4899' },
+    { name: 'blue', bg: '#bfdbfe', border: '#2563eb', shadow: 'rgba(37, 99, 235, 0.3)', circle: '#3b82f6' },
+    { name: 'green', bg: '#bbf7d0', border: '#16a34a', shadow: 'rgba(22, 163, 74, 0.3)', circle: '#22c55e' },
+    { name: 'purple', bg: '#e9d5ff', border: '#9333ea', shadow: 'rgba(147, 51, 234, 0.3)', circle: '#a855f7' },
+    { name: 'orange', bg: '#fed7aa', border: '#ea580c', shadow: 'rgba(234, 88, 12, 0.3)', circle: '#f97316' },
 ];
 
 export default function Notes() {
@@ -22,6 +22,7 @@ export default function Notes() {
     const [newNoteColor, setNewNoteColor] = useState('yellow');
     const [editingId, setEditingId] = useState(null);
     const [editText, setEditText] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         fetchNotes();
@@ -65,6 +66,7 @@ export default function Notes() {
             setNotes([data, ...notes]);
             setNewNoteText('');
             setNewNoteColor('yellow');
+            setIsModalOpen(false);
             message.success('Note added!');
         }
     };
@@ -134,59 +136,85 @@ export default function Notes() {
 
     return (
         <div className="h-full flex flex-col">
-            {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 mb-2">My Notes</h1>
-                <p className="text-gray-500">{notes.length} note{notes.length !== 1 ? 's' : ''}</p>
-            </div>
-
-            {/* Add Note Card */}
-            <div className="mb-6 p-6 bg-white rounded-xl shadow-sm border border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Create New Note</h3>
-
-                {/* Color Picker */}
-                <div className="flex gap-2 mb-4">
-                    {COLORS.map((color) => (
-                        <button
-                            key={color.name}
-                            onClick={() => setNewNoteColor(color.name)}
-                            className={`w-10 h-10 rounded-full border-2 transition-all ${newNoteColor === color.name ? 'border-gray-800 scale-110' : 'border-gray-300 hover:scale-105'
-                                }`}
-                            style={{ backgroundColor: color.bg }}
-                            title={color.name}
-                        />
-                    ))}
+            {/* Header with Add Button */}
+            <div className="flex items-center justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">My Notes</h1>
+                    <p className="text-sm text-gray-500">{notes.length} note{notes.length !== 1 ? 's' : ''}</p>
                 </div>
-
-                {/* Text Input */}
-                <TextArea
-                    value={newNoteText}
-                    onChange={(e) => setNewNoteText(e.target.value)}
-                    onPressEnter={(e) => {
-                        if (e.ctrlKey || e.metaKey) {
-                            addNote();
-                        }
-                    }}
-                    placeholder="What's on your mind? (Ctrl+Enter to save)"
-                    autoSize={{ minRows: 3, maxRows: 6 }}
-                    className="mb-4"
-                    style={{ fontSize: '15px' }}
-                />
-
                 <Button
                     type="primary"
                     icon={<PlusOutlined />}
-                    onClick={addNote}
-                    disabled={!newNoteText.trim()}
+                    onClick={() => setIsModalOpen(true)}
                     size="large"
                     className="bg-pink-500 hover:bg-pink-600 border-none"
                 >
-                    Add Note
+                    New Note
                 </Button>
             </div>
 
+            {/* Add Note Modal */}
+            <Modal
+                title="Create New Note"
+                open={isModalOpen}
+                onCancel={() => {
+                    setIsModalOpen(false);
+                    setNewNoteText('');
+                    setNewNoteColor('yellow');
+                }}
+                footer={[
+                    <Button key="cancel" onClick={() => setIsModalOpen(false)}>
+                        Cancel
+                    </Button>,
+                    <Button
+                        key="submit"
+                        type="primary"
+                        onClick={addNote}
+                        disabled={!newNoteText.trim()}
+                        className="bg-pink-500 hover:bg-pink-600 border-none"
+                    >
+                        Add Note
+                    </Button>,
+                ]}
+            >
+                {/* Color Picker */}
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Choose Color</label>
+                    <div className="flex gap-2">
+                        {COLORS.map((color) => (
+                            <button
+                                key={color.name}
+                                onClick={() => setNewNoteColor(color.name)}
+                                className={`w-10 h-10 rounded-full border-2 transition-all ${newNoteColor === color.name ? 'border-gray-800 scale-110' : 'border-transparent hover:scale-105'
+                                    }`}
+                                style={{ backgroundColor: color.circle }}
+                                title={color.name}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                {/* Text Input */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Note Text</label>
+                    <TextArea
+                        value={newNoteText}
+                        onChange={(e) => setNewNoteText(e.target.value)}
+                        onPressEnter={(e) => {
+                            if (e.ctrlKey || e.metaKey) {
+                                addNote();
+                            }
+                        }}
+                        placeholder="What's on your mind? (Ctrl+Enter to save)"
+                        autoSize={{ minRows: 4, maxRows: 10 }}
+                        style={{ fontSize: '15px' }}
+                        autoFocus
+                    />
+                </div>
+            </Modal>
+
             {/* Notes Grid */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto overflow-x-visible pt-6 px-6" style={{ overflowX: 'visible' }}>
                 {notes.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="text-gray-300 mb-4">
@@ -196,7 +224,7 @@ export default function Notes() {
                         <p className="text-gray-400">Create your first note above to get started!</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-6 pb-6" style={{ overflow: 'visible' }}>
                         {notes.map((note) => {
                             const colorStyle = getColorStyle(note.color);
                             const isEditing = editingId === note.id;
@@ -211,6 +239,7 @@ export default function Notes() {
                                         boxShadow: `0 4px 12px ${colorStyle.shadow}`,
                                         transform: 'rotate(-1deg)',
                                         transition: 'all 0.3s ease',
+                                        overflow: 'visible',
                                     }}
                                     onMouseEnter={(e) => {
                                         e.currentTarget.style.transform = 'rotate(0deg) scale(1.02)';
@@ -221,66 +250,56 @@ export default function Notes() {
                                         e.currentTarget.style.boxShadow = `0 4px 12px ${colorStyle.shadow}`;
                                     }}
                                 >
-                                    <div className="p-6 min-h-[200px] flex flex-col">
+                                    <div className="p-8 min-h-[250px] flex flex-col">
                                         {/* Action Buttons */}
-                                        <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            {isEditing ? (
-                                                <>
-                                                    <Button
-                                                        type="text"
-                                                        size="small"
-                                                        icon={<CheckOutlined />}
-                                                        onClick={() => updateNote(note.id, editText)}
-                                                        className="bg-white hover:bg-green-50"
-                                                        style={{ color: '#10b981' }}
-                                                    />
-                                                    <Button
-                                                        type="text"
-                                                        size="small"
-                                                        icon={<CloseOutlined />}
-                                                        onClick={cancelEdit}
-                                                        className="bg-white hover:bg-gray-50"
-                                                    />
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Button
-                                                        type="text"
-                                                        size="small"
-                                                        icon={<EditOutlined />}
-                                                        onClick={() => startEdit(note)}
-                                                        className="bg-white hover:bg-blue-50"
-                                                        style={{ color: '#3b82f6' }}
-                                                    />
-                                                    <Button
-                                                        type="text"
-                                                        size="small"
-                                                        icon={<DeleteOutlined />}
-                                                        onClick={() => deleteNote(note.id)}
-                                                        className="bg-white hover:bg-red-50"
-                                                        danger
-                                                    />
-                                                </>
-                                            )}
+                                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Button
+                                                type="text"
+                                                size="small"
+                                                icon={<DeleteOutlined />}
+                                                onClick={() => deleteNote(note.id)}
+                                                className="bg-white hover:bg-opacity-80"
+                                                style={{ color: colorStyle.border }}
+                                            />
                                         </div>
 
                                         {/* Note Content */}
-                                        <div className="flex-1 mb-4">
+                                        <div className="flex-1 mb-4 mt-2">
                                             {isEditing ? (
                                                 <TextArea
                                                     value={editText}
                                                     onChange={(e) => setEditText(e.target.value)}
+                                                    onBlur={() => {
+                                                        if (editText.trim() && editText !== note.text) {
+                                                            updateNote(note.id, editText);
+                                                        } else {
+                                                            cancelEdit();
+                                                        }
+                                                    }}
                                                     onPressEnter={(e) => {
                                                         if (e.ctrlKey || e.metaKey) {
                                                             updateNote(note.id, editText);
                                                         }
                                                     }}
                                                     autoSize={{ minRows: 4, maxRows: 8 }}
-                                                    className="bg-white bg-opacity-50"
+                                                    style={{
+                                                        background: 'transparent',
+                                                        border: 'none',
+                                                        boxShadow: 'none',
+                                                        padding: 0,
+                                                        resize: 'none',
+                                                        fontSize: '16px',
+                                                        fontWeight: 500,
+                                                        lineHeight: '1.6',
+                                                        color: '#1f2937'
+                                                    }}
                                                     autoFocus
                                                 />
                                             ) : (
-                                                <p className="text-gray-800 font-medium leading-relaxed whitespace-pre-wrap break-words">
+                                                <p
+                                                    className="text-gray-800 font-medium leading-relaxed whitespace-pre-wrap break-words cursor-pointer hover:opacity-80 transition-opacity"
+                                                    onClick={() => startEdit(note)}
+                                                >
                                                     {note.text}
                                                 </p>
                                             )}
