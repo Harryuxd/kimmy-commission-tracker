@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Spin, ConfigProvider } from "antd";
+import { Skeleton, ConfigProvider } from "antd";
 import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import StaffManager from './components/StaffManager';
@@ -138,8 +138,10 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-white">
-        <Spin size="large" />
+      <div className="flex justify-center items-center h-screen bg-gray-50 p-8">
+        <div className="w-full max-w-4xl">
+          <Skeleton active paragraph={{ rows: 8 }} />
+        </div>
       </div>
     );
   }

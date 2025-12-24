@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Button, Input, Modal, message } from 'antd';
+import { Button, Input, Modal, message, Skeleton } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { supabase } from '../supabaseClient';
 import dayjs from 'dayjs';
@@ -131,7 +131,33 @@ export default function Notes() {
     };
 
     if (loading) {
-        return <div className="flex items-center justify-center h-full">Loading notes...</div>;
+        return (
+            <div className="h-full flex flex-col">
+                {/* Header Skeleton */}
+                <div className="flex items-center justify-between mb-6">
+                    <div>
+                        <Skeleton.Input active style={{ width: 150, height: 32, marginBottom: 8 }} />
+                        <Skeleton.Input active style={{ width: 100, height: 20 }} />
+                    </div>
+                    <Skeleton.Button active size="large" style={{ width: 120 }} />
+                </div>
+
+                {/* Notes Grid Skeleton */}
+                <div className="flex-1 overflow-y-auto pt-4 px-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-6 pb-6">
+                        {[...Array(8)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="p-8 min-h-[250px] bg-gray-50 rounded-xl border border-gray-200"
+                                style={{ transform: 'rotate(-1deg)' }}
+                            >
+                                <Skeleton active paragraph={{ rows: 4 }} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -214,7 +240,7 @@ export default function Notes() {
             </Modal>
 
             {/* Notes Grid */}
-            <div className="flex-1 overflow-y-auto overflow-x-visible pt-6 px-6" style={{ overflowX: 'visible' }}>
+            <div className="flex-1 overflow-y-auto overflow-x-visible pt-4 px-4" style={{ overflowX: 'visible' }}>
                 {notes.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="text-gray-300 mb-4">
