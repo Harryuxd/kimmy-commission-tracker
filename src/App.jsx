@@ -4,7 +4,9 @@ import Layout from './components/Layout';
 import Dashboard from './components/Dashboard';
 import StaffManager from './components/StaffManager';
 import Login from './components/Login';
+import CalendarTab from './components/CalendarTab';
 import { supabase } from './supabaseClient';
+import './dayjsConfig';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -169,6 +171,8 @@ function App() {
               onEditEntry={editEntry}
               onDeleteEntry={deleteEntry}
             />
+          ) : activeTab === 'calendar' ? (
+            <CalendarTab entries={uiEntries} />
           ) : (
             <StaffManager
               staff={staff}

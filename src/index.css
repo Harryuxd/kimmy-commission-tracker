@@ -1,1 +1,94 @@
 @import "tailwindcss";
+@source "../node_modules/@ilamy/calendar/dist/**/*.js";
+
+@theme {
+    /* Override default blue with Kimmy Pink palette to theme the calendar */
+    --color-blue-50: #fdf2f8;
+    --color-blue-100: #fce7f3;
+    --color-blue-200: #fbcfe8;
+    --color-blue-300: #f9a8d4;
+    --color-blue-400: #f472b6;
+    --color-blue-500: #EC5598;
+    /* Kimmy Main Pink */
+    --color-blue-600: #db2777;
+    --color-blue-700: #be185d;
+    --color-blue-800: #9d174d;
+    --color-blue-900: #831843;
+    --color-blue-950: #500724;
+
+    /* Also define primary for good measure */
+    --color-primary-50: #fdf2f8;
+    --color-primary-100: #fce7f3;
+    --color-primary-200: #fbcfe8;
+    --color-primary-300: #f9a8d4;
+    --color-primary-400: #f472b6;
+    --color-primary-500: #EC5598;
+    --color-primary-600: #db2777;
+    --color-primary-700: #be185d;
+    --color-primary-800: #9d174d;
+    --color-primary-900: #831843;
+    --color-primary-950: #500724;
+
+    /* Override indigo as well just in case */
+    --color-indigo-50: #fdf2f8;
+    --color-indigo-100: #fce7f3;
+    --color-indigo-200: #fbcfe8;
+    --color-indigo-300: #f9a8d4;
+    --color-indigo-400: #f472b6;
+    --color-indigo-500: #EC5598;
+    --color-indigo-600: #db2777;
+    --color-indigo-700: #be185d;
+    --color-indigo-800: #9d174d;
+    --color-indigo-900: #831843;
+    --color-indigo-950: #500724;
+
+    /* Define generic background variables used by some components */
+    --color-background: white;
+    --color-surface: white;
+    --color-popover: white;
+}
+
+/* Scoped fix for Calendar dropdowns only */
+.kimmy-calendar-wrapper select {
+    background-color: white;
+}
+
+/* Fallback for native selects inside the calendar if they aren't catching the class */
+option {
+    background-color: white;
+    color: black;
+}
+
+/* Change calendar borders to grey */
+.kimmy-calendar-wrapper .border,
+.kimmy-calendar-wrapper [class*="border"] {
+    border-color: #e5e7eb !important;
+}
+
+/* Make active view buttons (Month/Week/Day) pink with white text */
+.kimmy-calendar-wrapper button[class*="bg-blue-500"],
+.kimmy-calendar-wrapper button[class*="bg-blue-600"],
+.kimmy-calendar-wrapper [class*="bg-blue-500"],
+.kimmy-calendar-wrapper [class*="bg-blue-600"] {
+    background-color: #EC5598 !important;
+    color: white !important;
+}
+
+/* Ensure text stays white on active buttons */
+.kimmy-calendar-wrapper button[class*="bg-blue-500"] *,
+.kimmy-calendar-wrapper button[class*="bg-blue-600"] *,
+.kimmy-calendar-wrapper [class*="bg-blue-500"] *,
+.kimmy-calendar-wrapper [class*="bg-blue-600"] * {
+    color: white !important;
+}
+
+/* Pink hover state for active buttons */
+.kimmy-calendar-wrapper button[class*="bg-blue-500"]:hover,
+.kimmy-calendar-wrapper button[class*="bg-blue-600"]:hover {
+    background-color: #db2777 !important;
+}
+
+/* Grey hover state for inactive calendar buttons */
+.kimmy-calendar-wrapper button:not([class*="bg-blue-500"]):not([class*="bg-blue-600"]):hover {
+    background-color: #e5e7eb !important;
+}

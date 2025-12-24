@@ -1,6 +1,7 @@
+
 import { useState } from 'react';
 import { Layout as AntLayout, Menu, Dropdown, Avatar, theme, Button } from 'antd';
-import { UserOutlined, LogoutOutlined, DashboardOutlined, TeamOutlined, MenuFoldOutlined, MenuUnfoldOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, DashboardOutlined, TeamOutlined, MenuFoldOutlined, MenuUnfoldOutlined, CalendarOutlined } from '@ant-design/icons';
 import kimmyLogo from '../assets/Kimmy_logo.png';
 
 const { Header, Sider, Content } = AntLayout;
@@ -17,6 +18,12 @@ export default function Layout({ children, activeTab, setActiveTab, handleLogout
             icon: <DashboardOutlined />,
             label: 'Dashboard',
             onClick: () => setActiveTab('tracker'),
+        },
+        {
+            key: 'calendar',
+            icon: <CalendarOutlined />,
+            label: 'Calendar',
+            onClick: () => setActiveTab('calendar'),
         },
         {
             key: 'staff',

@@ -1,7 +1,7 @@
 
 import { useState, useMemo } from 'react';
 import { Table, Button, Modal, Form, Select, InputNumber, DatePicker, Radio, Tag, Row, Col, Space, Card, Progress, Segmented } from 'antd';
-import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, DollarOutlined, CalendarOutlined, EditOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, DollarOutlined, CalendarOutlined, EditOutlined, DownloadOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getAvatarColor } from '../utils/colorUtils';
 import { serviceList } from '../data/serviceList';
@@ -56,6 +56,34 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
             setIsModalOpen(false);
             setEditingEntry(null);
         });
+    };
+
+    const handleExport = () => {
+        const headers = ["Date", "Staff Name", "Service", "Sales Amount", "Commission Rate", "Commission"];
+        const csvRows = [
+            headers.join(","),
+            ...filteredEntries.map(entry => {
+                const commission = (entry.salesAmount * (entry.commissionRate || 0.7)).toFixed(2);
+                return [
+                    dayjs(entry.timestamp).format('YYYY-MM-DD'),
+                    `"${entry.staffName}"`,
+                    `"${entry.serviceType || '-'}"`,
+                    entry.salesAmount.toFixed(2),
+                    `${((entry.commissionRate || 0.7) * 100).toFixed(0)}%`,
+                    commission
+                ].join(",");
+            })
+        ];
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `commission_report_${dayjs().format('YYYY-MM-DD')}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const filteredEntries = useMemo(() => {
@@ -279,18 +307,46 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
                     </Card>
                 </div>
 
-                {/* Team Activity Card */}
+                {/* Staff Members Card */}
                 <div className="flex-1">
-                    <Card bordered={false} className="shadow-sm rounded-xl bg-white h-full" bodyStyle={{ padding: '12px 24px' }} title={<span className="font-bold text-gray-800 text-sm">Team Activity</span>}>
+                    <Card bordered={false} className="shadow-sm rounded-xl bg-white h-full" bodyStyle={{ padding: '12px 24px' }} title={<span className="font-bold text-gray-800 text-sm">Staff Members</span>}>
                         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                            {staff.slice(0, 5).map((s, i) => (
-                                <div key={s} className="flex flex-col items-center min-w-[60px]">
-                                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-600 mb-1 border border-white shadow-sm flex-shrink-0">
-                                        {s.charAt(0)}
-                                    </div>
-                                    <span className="font-medium text-xs text-gray-700 truncate w-full text-center">{s.split(' ')[0]}</span>
-                                </div>
-                            ))}
+                            {(() => {
+                                // Calculate commission per staff member for filtered period
+                                const staffStats = staff.map(s => {
+                                    const staffEntries = filteredEntries.filter(e => e.staffName === s);
+                                    const commission = staffEntries.reduce((sum, e) => {
+                                        const rate = e.commissionRate !== undefined ? e.commissionRate : 0.7;
+                                        return sum + (e.salesAmount * rate);
+                                    }, 0);
+                                    return { name: s, commission, count: staffEntries.length };
+                                }).sort((a, b) => b.commission - a.commission); // Sort by commission
+
+                                const topPerformer = staffStats.length > 0 ? staffStats[0].name : null;
+
+                                return staffStats.slice(0, 5).map((s, i) => {
+                                    const avatarStyle = getAvatarColor(s.name);
+                                    const isTop = s.name === topPerformer && s.commission > 0;
+
+                                    return (
+                                        <div key={s.name} className="flex flex-col items-center min-w-[80px] relative">
+                                            <div
+                                                className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold mb-1 border-2 shadow-sm flex-shrink-0"
+                                                style={{
+                                                    backgroundColor: avatarStyle.bg,
+                                                    color: avatarStyle.text,
+                                                    borderColor: avatarStyle.bg
+                                                }}
+                                            >
+                                                {s.name.charAt(0)}
+                                            </div>
+                                            <span className="font-medium text-xs text-gray-700 truncate w-full text-center capitalize">{s.name.split(' ')[0]}</span>
+                                            <span className="font-bold text-[11px] text-pink-600">${s.commission.toFixed(0)}</span>
+                                            <span className="text-[10px] text-gray-400">{s.count} service{s.count !== 1 ? 's' : ''}</span>
+                                        </div>
+                                    );
+                                });
+                            })()}
                             {staff.length === 0 && <div className="text-gray-400 text-sm italic">No active staff</div>}
                         </div>
                     </Card>
@@ -306,7 +362,7 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
                             options={[
                                 { label: 'Today', value: 'daily' },
                                 { label: 'Week', value: 'weekly' },
-                                { label: 'All', value: 'all' },
+                                { label: 'All Time', value: 'all' },
                             ]}
                             value={viewMode}
                             onChange={setViewMode}
@@ -314,6 +370,12 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
                     </div>
 
                     <div className="flex gap-3">
+                        <Button
+                            icon={<DownloadOutlined />}
+                            onClick={handleExport}
+                        >
+                            Export
+                        </Button>
                         <Select
                             mode="multiple"
                             placeholder="Filter Staff"
