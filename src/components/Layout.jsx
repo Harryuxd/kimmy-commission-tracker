@@ -185,10 +185,10 @@ export default function Layout({ children, activeTab, setActiveTab, handleLogout
 
                 <Content
                     style={{
-                        margin: isMobile ? '12px 8px' : '24px 16px',
+                        margin: isMobile ? '12px 8px' : '8px 16px',
                         padding: isMobile ? 12 : 24,
                         overflow: 'hidden',
-                        height: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 112px)'
+                        height: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 96px)'
                     }}
                 >
                     {children}
