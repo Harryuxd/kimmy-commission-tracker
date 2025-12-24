@@ -399,7 +399,7 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
 
                         {/* Staff Members Card */}
                         <div className="flex-1">
-                            <Card bordered={false} className="shadow-sm rounded-xl bg-white h-full" bodyStyle={{ padding: '12px 24px' }} title={<span className="font-bold text-gray-800 text-sm">Staff Members</span>}>
+                            <Card bordered={false} className="shadow-sm rounded-xl bg-white h-full" bodyStyle={{ padding: '12px 24px' }} title={<span className="font-bold text-gray-800 text-lg">Staff Members</span>}>
                                 <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                                     {(() => {
                                         // Calculate commission per staff member for filtered period
