@@ -1,7 +1,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
-import { Table, Button, Modal, Form, Select, InputNumber, DatePicker, Radio, Tag, Row, Col, Space, Card, Progress, Segmented } from 'antd';
-import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, DollarOutlined, CalendarOutlined, EditOutlined, DownloadOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
+import { Table, Button, Modal, Form, Select, InputNumber, DatePicker, Radio, Tag, Row, Col, Space, Card, Progress, Tabs } from 'antd';
+import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, DollarOutlined, CalendarOutlined, EditOutlined, DownloadOutlined, ExclamationCircleOutlined, DashboardOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getAvatarColor } from '../utils/colorUtils';
 import { serviceList } from '../data/serviceList';
@@ -17,6 +17,33 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
     const [isMobile, setIsMobile] = useState(false);
     const [mobilePage, setMobilePage] = useState(1);
     const mobilePageSize = 10;
+    const [notes, setNotes] = useState(() => {
+        // Load notes array from localStorage on initial mount
+        const savedNotes = localStorage.getItem('kimmy-dashboard-notes');
+        return savedNotes ? JSON.parse(savedNotes) : [];
+    });
+    const [newNoteText, setNewNoteText] = useState('');
+
+    // Save notes to localStorage whenever they change
+    useEffect(() => {
+        localStorage.setItem('kimmy-dashboard-notes', JSON.stringify(notes));
+    }, [notes]);
+
+    const addNote = () => {
+        if (newNoteText.trim()) {
+            const newNote = {
+                id: Date.now(),
+                text: newNoteText.trim(),
+                timestamp: new Date().toISOString()
+            };
+            setNotes([newNote, ...notes]); // Add to beginning
+            setNewNoteText('');
+        }
+    };
+
+    const deleteNote = (id) => {
+        setNotes(notes.filter(note => note.id !== id));
+    };
 
     // Detect mobile screen size
     useEffect(() => {
@@ -313,347 +340,524 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
         },
     ];
 
-    return (
-        <div className="flex flex-col gap-4 md:gap-6 h-full font-sans">
-            {/* Top Row: Stats & Staff Members - Stack on mobile */}
-            <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
-                {/* Stats Card */}
-                <div className="flex-1">
-                    <Card
-                        bordered={false}
-                        className="shadow-sm rounded-xl overflow-hidden bg-white h-full"
-                        title={
-                            <span className="font-bold text-gray-800 text-lg">
-                                {viewMode === 'daily' ? "Today's Performance" :
-                                    viewMode === 'weekly' ? "This Week's Performance" :
-                                        "All Time Performance"}
-                            </span>
-                        }
-                    >
-                        <div className="flex gap-8 items-center h-full">
-                            <div className="flex-1">
-                                <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Total Commission</div>
-                                <div className="text-3xl font-bold text-gray-800">${stats.totalCommission.toFixed(2)}</div>
-                                {growthMetrics !== null && (
-                                    <div className={`${growthMetrics >= 0 ? 'text-green-500' : 'text-red-500'} text-xs mt-1 flex items-center gap-1`}>
-                                        {growthMetrics >= 0 ? <ArrowUpOutlined /> : <ArrowUpOutlined rotate={180} />}
-                                        <span className="font-medium">{Math.abs(growthMetrics).toFixed(1)}%</span>
-                                        vs last {viewMode === 'daily' ? 'day' : 'week'}
-                                    </div>
-                                )}
-                                {growthMetrics === null && (
-                                    <div className="text-gray-400 text-xs mt-1">All time earnings</div>
-                                )}
-                            </div>
-                            <div className="w-px h-12 bg-gray-100"></div>
-                            <div className="flex-1">
-                                <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Total Sales</div>
-                                <div className="text-2xl font-bold text-gray-800">${stats.totalSales.toFixed(2)}</div>
-                                <div className="text-gray-400 text-xs mt-1">{filteredEntries.length} services performed</div>
-                            </div>
-                        </div>
-                    </Card>
-                </div>
-
-                {/* Staff Members Card */}
-                <div className="flex-1">
-                    <Card bordered={false} className="shadow-sm rounded-xl bg-white h-full" bodyStyle={{ padding: '12px 24px' }} title={<span className="font-bold text-gray-800 text-sm">Staff Members</span>}>
-                        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-                            {(() => {
-                                // Calculate commission per staff member for filtered period
-                                const staffStats = staff.map(s => {
-                                    const staffEntries = filteredEntries.filter(e => e.staffName === s);
-                                    const commission = staffEntries.reduce((sum, e) => {
-                                        const rate = e.commissionRate !== undefined ? e.commissionRate : 0.7;
-                                        return sum + (e.salesAmount * rate);
-                                    }, 0);
-                                    return { name: s, commission, count: staffEntries.length };
-                                }).sort((a, b) => b.commission - a.commission); // Sort by commission
-
-                                const topPerformer = staffStats.length > 0 ? staffStats[0].name : null;
-
-                                return staffStats.slice(0, 5).map((s, i) => {
-                                    const avatarStyle = getAvatarColor(s.name);
-                                    const isTop = s.name === topPerformer && s.commission > 0;
-
-                                    return (
-                                        <div key={s.name} className="flex flex-col items-center min-w-[80px] relative">
-                                            <div
-                                                className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold mb-1 border-2 shadow-sm flex-shrink-0"
-                                                style={{
-                                                    backgroundColor: avatarStyle.bg,
-                                                    color: avatarStyle.text,
-                                                    borderColor: avatarStyle.bg
-                                                }}
-                                            >
-                                                {s.name.charAt(0)}
+    const tabItems = [
+        {
+            key: 'home',
+            label: (
+                <span>
+                    <DashboardOutlined /> Home
+                </span>
+            ),
+            children: (
+                <>
+                    {/* Top Row: Stats & Staff Members - Stack on mobile */}
+                    <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
+                        {/* Stats Card */}
+                        <div className="flex-1">
+                            <Card
+                                bordered={false}
+                                className="shadow-sm rounded-xl overflow-hidden bg-white h-full"
+                                title={
+                                    <span className="font-bold text-gray-800 text-lg">
+                                        {viewMode === 'daily' ? "Today's Performance" :
+                                            viewMode === 'weekly' ? "This Week's Performance" :
+                                                "All Time Performance"}
+                                    </span>
+                                }
+                            >
+                                <div className="flex gap-8 items-center h-full">
+                                    <div className="flex-1">
+                                        <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Total Commission</div>
+                                        <div className="text-3xl font-bold text-gray-800">${stats.totalCommission.toFixed(2)}</div>
+                                        {growthMetrics !== null && (
+                                            <div className={`${growthMetrics >= 0 ? 'text-green-500' : 'text-red-500'} text-xs mt-1 flex items-center gap-1`}>
+                                                {growthMetrics >= 0 ? <ArrowUpOutlined /> : <ArrowUpOutlined rotate={180} />}
+                                                <span className="font-medium">{Math.abs(growthMetrics).toFixed(1)}%</span>
+                                                vs last {viewMode === 'daily' ? 'day' : 'week'}
                                             </div>
-                                            <span className="font-medium text-xs text-gray-700 truncate w-full text-center capitalize">{s.name.split(' ')[0]}</span>
-                                            <span className="font-bold text-[11px] text-pink-600">${s.commission.toFixed(0)}</span>
-                                            <span className="text-[10px] text-gray-400">{s.count} service{s.count !== 1 ? 's' : ''}</span>
-                                        </div>
-                                    );
-                                });
-                            })()}
-                            {staff.length === 0 && <div className="text-gray-400 text-sm italic">No active staff</div>}
+                                        )}
+                                        {growthMetrics === null && (
+                                            <div className="text-gray-400 text-xs mt-1">All time earnings</div>
+                                        )}
+                                    </div>
+                                    <div className="w-px h-12 bg-gray-100"></div>
+                                    <div className="flex-1">
+                                        <div className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2">Total Sales</div>
+                                        <div className="text-2xl font-bold text-gray-800">${stats.totalSales.toFixed(2)}</div>
+                                        <div className="text-gray-400 text-xs mt-1">{filteredEntries.length} services performed</div>
+                                    </div>
+                                </div>
+                            </Card>
                         </div>
-                    </Card>
-                </div>
-            </div>
 
-            {/* Bottom Row: Main Table */}
-            <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-hidden">
-                {/* Controls - Stack on mobile */}
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center w-full sm:w-auto">
-                        <h2 className="text-lg md:text-xl font-bold text-gray-800 m-0">Sales Log</h2>
-                        <Segmented
-                            options={[
-                                { label: 'Today', value: 'daily' },
-                                { label: 'Week', value: 'weekly' },
-                                { label: 'All Time', value: 'all' },
-                            ]}
-                            value={viewMode}
-                            onChange={setViewMode}
-                            size="middle"
-                        />
-                    </div>
+                        {/* Staff Members Card */}
+                        <div className="flex-1">
+                            <Card bordered={false} className="shadow-sm rounded-xl bg-white h-full" bodyStyle={{ padding: '12px 24px' }} title={<span className="font-bold text-gray-800 text-sm">Staff Members</span>}>
+                                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                                    {(() => {
+                                        // Calculate commission per staff member for filtered period
+                                        const staffStats = staff.map(s => {
+                                            const staffEntries = filteredEntries.filter(e => e.staffName === s);
+                                            const commission = staffEntries.reduce((sum, e) => {
+                                                const rate = e.commissionRate !== undefined ? e.commissionRate : 0.7;
+                                                return sum + (e.salesAmount * rate);
+                                            }, 0);
+                                            return { name: s, commission, count: staffEntries.length };
+                                        }).sort((a, b) => b.commission - a.commission); // Sort by commission
 
-                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-                        <Button
-                            icon={<DownloadOutlined />}
-                            onClick={handleExport}
-                            className="flex-1 sm:flex-initial"
-                        >
-                            <span className="hidden sm:inline">Export</span>
-                        </Button>
-                        <Select
-                            mode="multiple"
-                            placeholder="Filter Staff"
-                            style={{ minWidth: 120, flex: '1 1 auto' }}
-                            allowClear
-                            onChange={setFilterStaff}
-                            size="middle"
-                            bordered={false}
-                            className="custom-select bg-gray-50 rounded-lg sm:min-w-[160px]"
-                        >
-                            {staff.map(s => <Option key={s} value={s}>{s}</Option>)}
-                        </Select>
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            onClick={() => {
-                                setEditingEntry(null);
-                                form.resetFields();
-                                setIsModalOpen(true);
-                            }}
-                            className="bg-pink-500 hover:bg-pink-600 border-none shadow-md shadow-pink-100"
-                        >
-                            Add Service
-                        </Button>
-                    </div>
-                </div>
+                                        const topPerformer = staffStats.length > 0 ? staffStats[0].name : null;
 
-                {/* Mobile Card View */}
-                {isMobile ? (
-                    <div className="flex-1 flex flex-col overflow-hidden">
-                        <div className="flex-1 overflow-auto space-y-3 pb-4">
-                            {filteredEntries
-                                .slice((mobilePage - 1) * mobilePageSize, mobilePage * mobilePageSize)
-                                .map((entry) => {
-                                    const avatarStyle = getAvatarColor(entry.staffName);
-                                    const commission = (entry.salesAmount * (entry.commissionRate || 0.7)).toFixed(2);
-                                    const rate = entry.commissionRate !== undefined ? entry.commissionRate : 0.7;
+                                        return staffStats.slice(0, 5).map((s, i) => {
+                                            const avatarStyle = getAvatarColor(s.name);
+                                            const isTop = s.name === topPerformer && s.commission > 0;
 
-                                    return (
-                                        <Card key={entry.id} className="shadow-sm" bodyStyle={{ padding: '16px' }}>
-                                            <div className="flex items-start justify-between mb-3">
-                                                <div className="flex items-center gap-2">
+                                            return (
+                                                <div key={s.name} className="flex flex-col items-center min-w-[80px] relative">
                                                     <div
-                                                        className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
+                                                        className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold mb-1 border-2 shadow-sm flex-shrink-0"
                                                         style={{
                                                             backgroundColor: avatarStyle.bg,
-                                                            color: avatarStyle.text
+                                                            color: avatarStyle.text,
+                                                            borderColor: avatarStyle.bg
                                                         }}
                                                     >
-                                                        {entry.staffName.charAt(0)}
+                                                        {s.name.charAt(0)}
                                                     </div>
-                                                    <div>
-                                                        <div className="font-semibold text-gray-800 capitalize">{entry.staffName}</div>
-                                                        <div className="text-xs text-gray-500">{dayjs(entry.timestamp).format('MMM D, YYYY')}</div>
-                                                    </div>
+                                                    <span className="font-medium text-xs text-gray-700 truncate w-full text-center capitalize">{s.name.split(' ')[0]}</span>
+                                                    <span className="font-bold text-[11px] text-pink-600">${s.commission.toFixed(0)}</span>
+                                                    <span className="text-[10px] text-gray-400">{s.count} service{s.count !== 1 ? 's' : ''}</span>
                                                 </div>
-                                                <Tag
-                                                    color={rate === 0.7 ? 'orange' : 'blue'}
-                                                    className="rounded-full px-2 py-0.5 font-medium"
-                                                >
-                                                    {(rate * 100).toFixed(0)}%
-                                                </Tag>
-                                            </div>
-
-                                            {entry.serviceType && (
-                                                <div className="mb-2">
-                                                    <span className="text-xs text-gray-500">Service:</span>
-                                                    <span className="ml-2 text-sm text-gray-700">{entry.serviceType}</span>
-                                                </div>
-                                            )}
-
-                                            <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-                                                <div>
-                                                    <div className="text-xs text-gray-500">Sales</div>
-                                                    <div className="text-lg font-semibold text-gray-800">${entry.salesAmount.toFixed(2)}</div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="text-xs text-gray-500">Commission</div>
-                                                    <div className="text-lg font-bold text-pink-600">${commission}</div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
-                                                <Button
-                                                    type="text"
-                                                    size="small"
-                                                    icon={<EditOutlined />}
-                                                    onClick={() => openEditModal(entry)}
-                                                    className="flex-1"
-                                                >
-                                                    Edit
-                                                </Button>
-                                                <Button
-                                                    type="text"
-                                                    size="small"
-                                                    danger
-                                                    icon={<DeleteOutlined />}
-                                                    onClick={() => handleDelete(entry)}
-                                                    className="flex-1"
-                                                >
-                                                    Delete
-                                                </Button>
-                                            </div>
-                                        </Card>
-                                    );
-                                })}
-                            {filteredEntries.length === 0 && (
-                                <div className="text-center py-12 text-gray-400">
-                                    No entries found
+                                            );
+                                        });
+                                    })()}
+                                    {staff.length === 0 && <div className="text-gray-400 text-sm italic">No active staff</div>}
                                 </div>
-                            )}
+                            </Card>
                         </div>
 
-                        {/* Mobile Pagination */}
-                        {filteredEntries.length > mobilePageSize && (
-                            <div className="flex justify-center py-3 border-t border-gray-100 bg-white">
-                                <Space>
+                        {/* Notes Card */}
+                        <div className="flex-1">
+                            <Card
+                                bordered={false}
+                                className="shadow-sm rounded-xl bg-white h-full"
+                                bodyStyle={{ padding: '12px 24px', display: 'flex', flexDirection: 'column', height: '100%' }}
+                                title={
+                                    <div className="flex items-center justify-between">
+                                        <span className="font-bold text-gray-800 text-sm">Notes</span>
+                                        <span className="text-xs text-gray-500">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
+                                    </div>
+                                }
+                            >
+                                {/* Add Note Input */}
+                                <div className="flex gap-2 mb-3">
+                                    <input
+                                        type="text"
+                                        value={newNoteText}
+                                        onChange={(e) => setNewNoteText(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && addNote()}
+                                        placeholder="Add a note..."
+                                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+                                    />
                                     <Button
-                                        size="small"
-                                        disabled={mobilePage === 1}
-                                        onClick={() => setMobilePage(mobilePage - 1)}
+                                        type="primary"
+                                        icon={<PlusOutlined />}
+                                        onClick={addNote}
+                                        disabled={!newNoteText.trim()}
+                                        className="bg-pink-500 hover:bg-pink-600 border-none"
                                     >
-                                        Previous
+                                        Add
                                     </Button>
-                                    <span className="text-sm text-gray-600">
-                                        Page {mobilePage} of {Math.ceil(filteredEntries.length / mobilePageSize)}
-                                    </span>
-                                    <Button
-                                        size="small"
-                                        disabled={mobilePage >= Math.ceil(filteredEntries.length / mobilePageSize)}
-                                        onClick={() => setMobilePage(mobilePage + 1)}
-                                    >
-                                        Next
-                                    </Button>
-                                </Space>
+                                </div>
+
+                                {/* Notes List */}
+                                <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
+                                    {notes.length === 0 ? (
+                                        <div className="text-center py-8 text-gray-400 text-sm">
+                                            No notes yet. Add one above!
+                                        </div>
+                                    ) : (
+                                        notes.map((note) => (
+                                            <div
+                                                key={note.id}
+                                                className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors group"
+                                            >
+                                                <div className="flex justify-between items-start gap-2">
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm text-gray-700 mb-1 break-words">{note.text}</p>
+                                                        <span className="text-xs text-gray-400">
+                                                            {dayjs(note.timestamp).format('MMM D, YYYY h:mm A')}
+                                                        </span>
+                                                    </div>
+                                                    <Button
+                                                        type="text"
+                                                        size="small"
+                                                        danger
+                                                        icon={<DeleteOutlined />}
+                                                        onClick={() => deleteNote(note.id)}
+                                                        className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* Bottom Row: Main Table */}
+                    <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-hidden">
+                        {/* Controls - Stack on mobile */}
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center w-full sm:w-auto">
+                                <h2 className="text-lg md:text-xl font-bold text-gray-800 m-0">Sales Log</h2>
+                                <Segmented
+                                    options={[
+                                        { label: 'Today', value: 'daily' },
+                                        { label: 'Week', value: 'weekly' },
+                                        { label: 'All Time', value: 'all' },
+                                    ]}
+                                    value={viewMode}
+                                    onChange={setViewMode}
+                                    size="middle"
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                                <Button
+                                    icon={<DownloadOutlined />}
+                                    onClick={handleExport}
+                                    className="flex-1 sm:flex-initial"
+                                >
+                                    <span className="hidden sm:inline">Export</span>
+                                </Button>
+                                <Select
+                                    mode="multiple"
+                                    placeholder="Filter Staff"
+                                    style={{ minWidth: 120, flex: '1 1 auto' }}
+                                    allowClear
+                                    onChange={setFilterStaff}
+                                    size="middle"
+                                    bordered={false}
+                                    className="custom-select bg-gray-50 rounded-lg sm:min-w-[160px]"
+                                >
+                                    {staff.map(s => <Option key={s} value={s}>{s}</Option>)}
+                                </Select>
+                                <Button
+                                    type="primary"
+                                    icon={<PlusOutlined />}
+                                    onClick={() => {
+                                        setEditingEntry(null);
+                                        form.resetFields();
+                                        setIsModalOpen(true);
+                                    }}
+                                    className="bg-pink-500 hover:bg-pink-600 border-none shadow-md shadow-pink-100"
+                                >
+                                    Add Service
+                                </Button>
+                            </div>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        {isMobile ? (
+                            <div className="flex-1 flex flex-col overflow-hidden">
+                                <div className="flex-1 overflow-auto space-y-3 pb-4">
+                                    {filteredEntries
+                                        .slice((mobilePage - 1) * mobilePageSize, mobilePage * mobilePageSize)
+                                        .map((entry) => {
+                                            const avatarStyle = getAvatarColor(entry.staffName);
+                                            const commission = (entry.salesAmount * (entry.commissionRate || 0.7)).toFixed(2);
+                                            const rate = entry.commissionRate !== undefined ? entry.commissionRate : 0.7;
+
+                                            return (
+                                                <Card key={entry.id} className="shadow-sm" bodyStyle={{ padding: '16px' }}>
+                                                    <div className="flex items-start justify-between mb-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div
+                                                                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
+                                                                style={{
+                                                                    backgroundColor: avatarStyle.bg,
+                                                                    color: avatarStyle.text
+                                                                }}
+                                                            >
+                                                                {entry.staffName.charAt(0)}
+                                                            </div>
+                                                            <div>
+                                                                <div className="font-semibold text-gray-800 capitalize">{entry.staffName}</div>
+                                                                <div className="text-xs text-gray-500">{dayjs(entry.timestamp).format('MMM D, YYYY')}</div>
+                                                            </div>
+                                                        </div>
+                                                        <Tag
+                                                            color={rate === 0.7 ? 'orange' : 'blue'}
+                                                            className="rounded-full px-2 py-0.5 font-medium"
+                                                        >
+                                                            {(rate * 100).toFixed(0)}%
+                                                        </Tag>
+                                                    </div>
+
+                                                    {entry.serviceType && (
+                                                        <div className="mb-2">
+                                                            <span className="text-xs text-gray-500">Service:</span>
+                                                            <span className="ml-2 text-sm text-gray-700">{entry.serviceType}</span>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                                                        <div>
+                                                            <div className="text-xs text-gray-500">Sales</div>
+                                                            <div className="text-lg font-semibold text-gray-800">${entry.salesAmount.toFixed(2)}</div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <div className="text-xs text-gray-500">Commission</div>
+                                                            <div className="text-lg font-bold text-pink-600">${commission}</div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                                                        <Button
+                                                            type="text"
+                                                            size="small"
+                                                            icon={<EditOutlined />}
+                                                            onClick={() => openEditModal(entry)}
+                                                            className="flex-1"
+                                                        >
+                                                            Edit
+                                                        </Button>
+                                                        <Button
+                                                            type="text"
+                                                            size="small"
+                                                            danger
+                                                            icon={<DeleteOutlined />}
+                                                            onClick={() => handleDelete(entry)}
+                                                            className="flex-1"
+                                                        >
+                                                            Delete
+                                                        </Button>
+                                                    </div>
+                                                </Card>
+                                            );
+                                        })}
+                                    {filteredEntries.length === 0 && (
+                                        <div className="text-center py-12 text-gray-400">
+                                            No entries found
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Mobile Pagination */}
+                                {filteredEntries.length > mobilePageSize && (
+                                    <div className="flex justify-center py-3 border-t border-gray-100 bg-white">
+                                        <Space>
+                                            <Button
+                                                size="small"
+                                                disabled={mobilePage === 1}
+                                                onClick={() => setMobilePage(mobilePage - 1)}
+                                            >
+                                                Previous
+                                            </Button>
+                                            <span className="text-sm text-gray-600">
+                                                Page {mobilePage} of {Math.ceil(filteredEntries.length / mobilePageSize)}
+                                            </span>
+                                            <Button
+                                                size="small"
+                                                disabled={mobilePage >= Math.ceil(filteredEntries.length / mobilePageSize)}
+                                                onClick={() => setMobilePage(mobilePage + 1)}
+                                            >
+                                                Next
+                                            </Button>
+                                        </Space>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            /* Desktop Table View */
+                            <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex-1 flex flex-col overflow-hidden">
+                                <div className="flex-1 overflow-hidden">
+                                    <Table
+                                        columns={columns}
+                                        dataSource={filteredEntries}
+                                        rowKey="id"
+                                        pagination={{
+                                            pageSize: 50,
+                                            position: ['bottomCenter'],
+                                            showSizeChanger: false,
+                                            showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} entries`,
+                                            className: 'sticky-pagination'
+                                        }}
+                                        className="custom-table"
+                                        scroll={{ y: 'calc(100vh - 450px)', x: 'max-content' }}
+                                        rowSelection={{
+                                            type: 'checkbox',
+                                        }}
+                                        onChange={(pagination, filters, sorter, extra) => {
+                                            console.log('params', pagination, filters, sorter, extra);
+                                        }}
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
-                ) : (
-                    /* Desktop Table View */
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex-1 flex flex-col overflow-hidden">
-                        <div className="flex-1 overflow-hidden">
-                            <Table
-                                columns={columns}
-                                dataSource={filteredEntries}
-                                rowKey="id"
-                                pagination={{
-                                    pageSize: 50,
-                                    position: ['bottomCenter'],
-                                    showSizeChanger: false,
-                                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} entries`,
-                                    className: 'sticky-pagination'
-                                }}
-                                className="custom-table"
-                                scroll={{ y: 'calc(100vh - 450px)', x: 'max-content' }}
-                                rowSelection={{
-                                    type: 'checkbox',
-                                }}
-                                onChange={(pagination, filters, sorter, extra) => {
-                                    console.log('params', pagination, filters, sorter, extra);
-                                }}
+
+                    <Modal
+                        title={editingEntry ? "Edit Service" : "Add New Service"}
+                        open={isModalOpen}
+                        onOk={handleOk}
+                        onCancel={() => {
+                            setIsModalOpen(false);
+                            setEditingEntry(null);
+                            form.resetFields();
+                        }}
+                        okText={editingEntry ? "Update Service" : "Add Service"}
+                        okButtonProps={{ className: 'bg-black hover:bg-gray-800' }}
+                        centered
+                    >
+                        <Form form={form} layout="vertical" initialValues={{ commissionRate: 0.7, date: dayjs() }} className="mt-4">
+                            <Form.Item name="staffName" label="Staff Member" rules={[{ required: true, message: 'Please select a staff member' }]}>
+                                <Select placeholder="Select Staff" size="large">
+                                    {staff.map(s => <Option key={s} value={s}>{s}</Option>)}
+                                </Select>
+                            </Form.Item>
+
+                            <Form.Item name="serviceType" label="Service (Optional)">
+                                <Select
+                                    placeholder="Select a service to auto-fill price"
+                                    size="large"
+                                    showSearch
+                                    allowClear
+                                    optionFilterProp="children"
+                                    onChange={(value) => {
+                                        const service = serviceList.find(s => s.label === value);
+                                        if (service) {
+                                            form.setFieldsValue({ salesAmount: service.value });
+                                        }
+                                    }}
+                                >
+                                    {serviceList.map(s => <Option key={s.label} value={s.label}>{s.label} (${s.value}+)</Option>)}
+                                </Select>
+                            </Form.Item>
+
+                            <Form.Item name="date" label="Date" rules={[{ required: true, message: 'Please select a date' }]}>
+                                <DatePicker className="w-full" size="large" />
+                            </Form.Item>
+
+                            <Form.Item name="salesAmount" label="Sales Amount ($)" rules={[{ required: true, message: 'Please enter amount' }]}>
+                                <InputNumber
+                                    className="w-full"
+                                    prefix="$"
+                                    precision={2}
+                                    min={0}
+                                    size="large"
+                                />
+                            </Form.Item>
+
+                            <Form.Item name="commissionRate" label="Commission Rate">
+                                <Radio.Group size="large" className="w-full flex">
+                                    <Radio.Button value={0.7} className="flex-1 text-center">70%</Radio.Button>
+                                    <Radio.Button value={0.6} className="flex-1 text-center">60%</Radio.Button>
+                                </Radio.Group>
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+                </>
+            ),
+        },
+        {
+            key: 'notes',
+            label: (
+                <span>
+                    <EditOutlined /> Notes
+                </span>
+            ),
+            children: (
+                <div className="flex-1 flex flex-col overflow-hidden">
+                    <Card
+                        bordered={false}
+                        className="shadow-sm rounded-xl bg-white flex-1 flex flex-col overflow-hidden"
+                        bodyStyle={{ padding: '24px', display: 'flex', flexDirection: 'column', height: '100%' }}
+                        title={
+                            <div className="flex items-center justify-between">
+                                <span className="font-bold text-gray-800 text-lg">My Notes</span>
+                                <span className="text-sm text-gray-500">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
+                            </div>
+                        }
+                    >
+                        {/* Add Note Input */}
+                        <div className="flex gap-3 mb-4">
+                            <input
+                                type="text"
+                                value={newNoteText}
+                                onChange={(e) => setNewNoteText(e.target.value)}
+                                onKeyPress={(e) => e.key === 'Enter' && addNote()}
+                                placeholder="Add a new note..."
+                                className="flex-1 px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
                             />
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={addNote}
+                                disabled={!newNoteText.trim()}
+                                size="large"
+                                className="bg-pink-500 hover:bg-pink-600 border-none px-6"
+                            >
+                                Add Note
+                            </Button>
                         </div>
-                    </div>
-                )}
-            </div>
 
-            <Modal
-                title={editingEntry ? "Edit Service" : "Add New Service"}
-                open={isModalOpen}
-                onOk={handleOk}
-                onCancel={() => {
-                    setIsModalOpen(false);
-                    setEditingEntry(null);
-                    form.resetFields();
-                }}
-                okText={editingEntry ? "Update Service" : "Add Service"}
-                okButtonProps={{ className: 'bg-black hover:bg-gray-800' }}
-                centered
-            >
-                <Form form={form} layout="vertical" initialValues={{ commissionRate: 0.7, date: dayjs() }} className="mt-4">
-                    <Form.Item name="staffName" label="Staff Member" rules={[{ required: true, message: 'Please select a staff member' }]}>
-                        <Select placeholder="Select Staff" size="large">
-                            {staff.map(s => <Option key={s} value={s}>{s}</Option>)}
-                        </Select>
-                    </Form.Item>
+                        {/* Notes List */}
+                        <div className="flex-1 overflow-y-auto space-y-3 min-h-0">
+                            {notes.length === 0 ? (
+                                <div className="h-full flex items-center justify-center">
+                                    <div className="text-center py-12">
+                                        <div className="text-gray-300 mb-4">
+                                            <EditOutlined style={{ fontSize: '48px' }} />
+                                        </div>
+                                        <div className="text-gray-400 text-lg font-medium mb-2">No notes yet</div>
+                                        <div className="text-gray-400 text-sm">Add your first note above to get started</div>
+                                    </div>
+                                </div>
+                            ) : (
+                                notes.map((note) => (
+                                    <div
+                                        key={note.id}
+                                        className="p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl border border-gray-100 hover:border-pink-200 hover:shadow-md transition-all group"
+                                    >
+                                        <div className="flex justify-between items-start gap-3">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-base text-gray-700 mb-2 break-words leading-relaxed">{note.text}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <CalendarOutlined className="text-gray-400 text-xs" />
+                                                    <span className="text-xs text-gray-400">
+                                                        {dayjs(note.timestamp).format('MMM D, YYYY')}
+                                                    </span>
+                                                    <span className="text-gray-300">•</span>
+                                                    <span className="text-xs text-gray-400">
+                                                        {dayjs(note.timestamp).format('h:mm A')}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                type="text"
+                                                danger
+                                                icon={<DeleteOutlined />}
+                                                onClick={() => deleteNote(note.id)}
+                                                className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                                            >
+                                                Delete
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </Card>
+                </div>
+            ),
+        },
+    ];
 
-                    <Form.Item name="serviceType" label="Service (Optional)">
-                        <Select
-                            placeholder="Select a service to auto-fill price"
-                            size="large"
-                            showSearch
-                            allowClear
-                            optionFilterProp="children"
-                            onChange={(value) => {
-                                const service = serviceList.find(s => s.label === value);
-                                if (service) {
-                                    form.setFieldsValue({ salesAmount: service.value });
-                                }
-                            }}
-                        >
-                            {serviceList.map(s => <Option key={s.label} value={s.label}>{s.label} (${s.value}+)</Option>)}
-                        </Select>
-                    </Form.Item>
-
-                    <Form.Item name="date" label="Date" rules={[{ required: true, message: 'Please select a date' }]}>
-                        <DatePicker className="w-full" size="large" />
-                    </Form.Item>
-
-                    <Form.Item name="salesAmount" label="Sales Amount ($)" rules={[{ required: true, message: 'Please enter amount' }]}>
-                        <InputNumber
-                            className="w-full"
-                            prefix="$"
-                            precision={2}
-                            min={0}
-                            size="large"
-                        />
-                    </Form.Item>
-
-                    <Form.Item name="commissionRate" label="Commission Rate">
-                        <Radio.Group size="large" className="w-full flex">
-                            <Radio.Button value={0.7} className="flex-1 text-center">70%</Radio.Button>
-                            <Radio.Button value={0.6} className="flex-1 text-center">60%</Radio.Button>
-                        </Radio.Group>
-                    </Form.Item>
-                </Form>
-            </Modal>
+    return (
+        <div className="flex flex-col h-full font-sans">
+            <Tabs defaultActiveKey="home" items={tabItems} size="large" />
         </div>
     );
 }

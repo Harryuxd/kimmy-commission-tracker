@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @source "../node_modules/@ilamy/calendar/dist/**/*.js";
 
+/* Full height for login page */
+html,
+body,
+#root {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
 @theme {
     /* Override default blue with Kimmy Pink palette to theme the calendar */
     --color-blue-50: #fdf2f8;
