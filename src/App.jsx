@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import StaffManager from './components/StaffManager';
 import Login from './components/Login';
 import CalendarTab from './components/CalendarTab';
+import Notes from './components/Notes';
 import { supabase } from './supabaseClient';
 import './dayjsConfig';
 
@@ -173,6 +174,8 @@ function App() {
             />
           ) : activeTab === 'calendar' ? (
             <CalendarTab entries={uiEntries} />
+          ) : activeTab === 'notes' ? (
+            <Notes />
           ) : (
             <StaffManager
               staff={staff}

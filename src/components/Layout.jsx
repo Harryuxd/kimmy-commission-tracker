@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Layout as AntLayout, Menu, Dropdown, Avatar, theme, Button, Drawer } from 'antd';
-import { UserOutlined, LogoutOutlined, DashboardOutlined, TeamOutlined, MenuFoldOutlined, MenuUnfoldOutlined, CalendarOutlined, MenuOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, DashboardOutlined, TeamOutlined, MenuFoldOutlined, MenuUnfoldOutlined, CalendarOutlined, MenuOutlined, EditOutlined } from '@ant-design/icons';
 import kimmyLogo from '../assets/Kimmy_logo.png';
 
 const { Header, Sider, Content } = AntLayout;
@@ -40,6 +40,15 @@ export default function Layout({ children, activeTab, setActiveTab, handleLogout
             label: 'Calendar',
             onClick: () => {
                 setActiveTab('calendar');
+                if (isMobile) setMobileDrawerOpen(false);
+            },
+        },
+        {
+            key: 'notes',
+            icon: <EditOutlined />,
+            label: 'Notes',
+            onClick: () => {
+                setActiveTab('notes');
                 if (isMobile) setMobileDrawerOpen(false);
             },
         },
