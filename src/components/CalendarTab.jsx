@@ -104,7 +104,7 @@ export default function CalendarTab({ entries = [] }) {
 
     return (
         <>
-            <div className="h-full bg-white rounded-xl shadow-sm border border-gray-100 p-6 overflow-auto">
+            <div className="h-full bg-white rounded-xl shadow-sm border border-gray-100 p-3 md:p-6 overflow-auto">
                 <Calendar
                     cellRender={cellRender}
                     className="kimmy-calendar"

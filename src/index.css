@@ -92,3 +92,69 @@ option {
 .kimmy-calendar-wrapper button:not([class*="bg-blue-500"]):not([class*="bg-blue-600"]):hover {
     background-color: #e5e7eb !important;
 }
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+
+    /* Larger touch targets on mobile */
+    .ant-btn {
+        min-height: 40px;
+        padding: 8px 16px;
+    }
+
+    /* Better table scrolling on mobile */
+    .ant-table-wrapper {
+        overflow-x: auto;
+    }
+
+    /* Reduce card padding on mobile */
+    .ant-card-body {
+        padding: 16px;
+    }
+
+    /* Stack stats cards vertically */
+    .ant-card {
+        margin-bottom: 12px;
+    }
+
+    /* Hide scrollbars but keep functionality */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Calendar mobile adjustments */
+    .ant-picker-calendar {
+        font-size: 12px;
+    }
+
+    .ant-picker-calendar-header {
+        padding: 8px !important;
+    }
+}
+
+/* Fixed pagination at bottom of table */
+.custom-table .ant-table-pagination.ant-pagination {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    padding: 16px;
+    margin: 0;
+    border-top: 1px solid #f0f0f0;
+    z-index: 10;
+}
+
+/* Prevent last row from being cut off by pagination */
+.custom-table .ant-table-tbody::after {
+    content: '';
+    display: block;
+    height: 80px;
+}
+
+.custom-table .ant-table-body {
+    overflow-y: auto !important;
+}

@@ -1,7 +1,7 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Table, Button, Modal, Form, Select, InputNumber, DatePicker, Radio, Tag, Row, Col, Space, Card, Progress, Segmented } from 'antd';
-import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, DollarOutlined, CalendarOutlined, EditOutlined, DownloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, DollarOutlined, CalendarOutlined, EditOutlined, DownloadOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getAvatarColor } from '../utils/colorUtils';
 import { serviceList } from '../data/serviceList';
@@ -14,6 +14,19 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
     const [form] = Form.useForm();
     const [viewMode, setViewMode] = useState('daily');
     const [filterStaff, setFilterStaff] = useState([]);
+    const [isMobile, setIsMobile] = useState(false);
+    const [mobilePage, setMobilePage] = useState(1);
+    const mobilePageSize = 10;
+
+    // Detect mobile screen size
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
 
     const openEditModal = (record) => {
         setEditingEntry(record);
@@ -25,6 +38,36 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
             date: dayjs(record.timestamp)
         });
         setIsModalOpen(true);
+    };
+
+    const handleDelete = (entry) => {
+        Modal.confirm({
+            title: 'Delete Entry',
+            icon: <ExclamationCircleOutlined />,
+            content: (
+                <div>
+                    <p>Are you sure you want to delete this entry?</p>
+                    <div className="mt-2 p-2 bg-gray-50 rounded">
+                        <p className="text-sm"><strong>Staff:</strong> {entry.staffName}</p>
+                        {entry.serviceType && <p className="text-sm"><strong>Service:</strong> {entry.serviceType}</p>}
+                        <p className="text-sm"><strong>Amount:</strong> ${entry.salesAmount.toFixed(2)}</p>
+                    </div>
+                </div>
+            ),
+            okText: 'Yes, Delete',
+            okType: 'danger',
+            cancelText: 'Cancel',
+            okButtonProps: {
+                danger: true,
+                type: 'primary'
+            },
+            cancelButtonProps: {
+                type: 'default'
+            },
+            onOk() {
+                onDeleteEntry(entry.id);
+            },
+        });
     };
 
     const handleOk = () => {
@@ -149,6 +192,7 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
             title: 'Staff Member',
             dataIndex: 'staffName',
             key: 'staffName',
+            width: 200,
             filters: staff.map(s => ({ text: s, value: s })),
             onFilter: (value, record) => record.staffName.indexOf(value) === 0,
             sorter: (a, b) => a.staffName.localeCompare(b.staffName),
@@ -186,6 +230,7 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
             title: 'Date',
             dataIndex: 'timestamp',
             key: 'timestamp',
+            width: 140,
             sorter: (a, b) => new Date(a.timestamp) - new Date(b.timestamp),
             render: (text) => <span className="text-gray-500">{dayjs(text).format('MMM D, YYYY')}</span>,
         },
@@ -193,6 +238,7 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
             title: 'Rate',
             dataIndex: 'commissionRate',
             key: 'commissionRate',
+            width: 100,
             filters: [
                 { text: '70%', value: 0.7 },
                 { text: '60%', value: 0.6 },
@@ -224,12 +270,14 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
             title: 'Sales',
             dataIndex: 'salesAmount',
             key: 'salesAmount',
+            width: 120,
             sorter: (a, b) => a.salesAmount - b.salesAmount,
             render: (amount) => <span className="font-medium">${amount.toFixed(2)}</span>,
         },
         {
             title: 'Commission',
             key: 'commission',
+            width: 130,
             sorter: (a, b) => {
                 const rateA = a.commissionRate !== undefined ? a.commissionRate : 0.7;
                 const rateB = b.commissionRate !== undefined ? b.commissionRate : 0.7;
@@ -258,7 +306,7 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
                         size="small"
                         className="text-gray-400 hover:text-red-500"
                         icon={<DeleteOutlined />}
-                        onClick={() => onDeleteEntry(record.id)}
+                        onClick={() => handleDelete(record)}
                     />
                 </div>
             ),
@@ -266,9 +314,9 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
     ];
 
     return (
-        <div className="flex flex-col gap-6 h-full font-sans">
-            {/* Top Row: Stats & Team Activity */}
-            <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex flex-col gap-4 md:gap-6 h-full font-sans">
+            {/* Top Row: Stats & Staff Members - Stack on mobile */}
+            <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
                 {/* Stats Card */}
                 <div className="flex-1">
                     <Card
@@ -354,10 +402,11 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
             </div>
 
             {/* Bottom Row: Main Table */}
-            <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-                <div className="flex justify-between items-center">
-                    <div className="flex gap-4 items-center">
-                        <h2 className="text-xl font-bold text-gray-800 m-0">Sales Log</h2>
+            <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-hidden">
+                {/* Controls - Stack on mobile */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center w-full sm:w-auto">
+                        <h2 className="text-lg md:text-xl font-bold text-gray-800 m-0">Sales Log</h2>
                         <Segmented
                             options={[
                                 { label: 'Today', value: 'daily' },
@@ -366,25 +415,27 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
                             ]}
                             value={viewMode}
                             onChange={setViewMode}
+                            size="middle"
                         />
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                         <Button
                             icon={<DownloadOutlined />}
                             onClick={handleExport}
+                            className="flex-1 sm:flex-initial"
                         >
-                            Export
+                            <span className="hidden sm:inline">Export</span>
                         </Button>
                         <Select
                             mode="multiple"
                             placeholder="Filter Staff"
-                            style={{ minWidth: 160 }}
+                            style={{ minWidth: 120, flex: '1 1 auto' }}
                             allowClear
                             onChange={setFilterStaff}
                             size="middle"
                             bordered={false}
-                            className="custom-select bg-gray-50 rounded-lg min-w-[160px] w-auto block"
+                            className="custom-select bg-gray-50 rounded-lg sm:min-w-[160px]"
                         >
                             {staff.map(s => <Option key={s} value={s}>{s}</Option>)}
                         </Select>
@@ -403,22 +454,144 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
                     </div>
                 </div>
 
-                <div className="bg-white p-0 rounded-xl border border-gray-100 shadow-sm flex-1 overflow-hidden">
-                    <Table
-                        columns={columns}
-                        dataSource={filteredEntries}
-                        rowKey="id"
-                        pagination={{ pageSize: 50, position: ['bottomCenter'], simple: true }}
-                        className="custom-table h-full"
-                        scroll={{ y: 'calc(100vh - 380px)' }}
-                        rowSelection={{
-                            type: 'checkbox',
-                        }}
-                        onChange={(pagination, filters, sorter, extra) => {
-                            console.log('params', pagination, filters, sorter, extra);
-                        }}
-                    />
-                </div>
+                {/* Mobile Card View */}
+                {isMobile ? (
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        <div className="flex-1 overflow-auto space-y-3 pb-4">
+                            {filteredEntries
+                                .slice((mobilePage - 1) * mobilePageSize, mobilePage * mobilePageSize)
+                                .map((entry) => {
+                                    const avatarStyle = getAvatarColor(entry.staffName);
+                                    const commission = (entry.salesAmount * (entry.commissionRate || 0.7)).toFixed(2);
+                                    const rate = entry.commissionRate !== undefined ? entry.commissionRate : 0.7;
+
+                                    return (
+                                        <Card key={entry.id} className="shadow-sm" bodyStyle={{ padding: '16px' }}>
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div
+                                                        className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0"
+                                                        style={{
+                                                            backgroundColor: avatarStyle.bg,
+                                                            color: avatarStyle.text
+                                                        }}
+                                                    >
+                                                        {entry.staffName.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-semibold text-gray-800 capitalize">{entry.staffName}</div>
+                                                        <div className="text-xs text-gray-500">{dayjs(entry.timestamp).format('MMM D, YYYY')}</div>
+                                                    </div>
+                                                </div>
+                                                <Tag
+                                                    color={rate === 0.7 ? 'orange' : 'blue'}
+                                                    className="rounded-full px-2 py-0.5 font-medium"
+                                                >
+                                                    {(rate * 100).toFixed(0)}%
+                                                </Tag>
+                                            </div>
+
+                                            {entry.serviceType && (
+                                                <div className="mb-2">
+                                                    <span className="text-xs text-gray-500">Service:</span>
+                                                    <span className="ml-2 text-sm text-gray-700">{entry.serviceType}</span>
+                                                </div>
+                                            )}
+
+                                            <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+                                                <div>
+                                                    <div className="text-xs text-gray-500">Sales</div>
+                                                    <div className="text-lg font-semibold text-gray-800">${entry.salesAmount.toFixed(2)}</div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-xs text-gray-500">Commission</div>
+                                                    <div className="text-lg font-bold text-pink-600">${commission}</div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-2 mt-3 pt-3 border-t border-gray-100">
+                                                <Button
+                                                    type="text"
+                                                    size="small"
+                                                    icon={<EditOutlined />}
+                                                    onClick={() => openEditModal(entry)}
+                                                    className="flex-1"
+                                                >
+                                                    Edit
+                                                </Button>
+                                                <Button
+                                                    type="text"
+                                                    size="small"
+                                                    danger
+                                                    icon={<DeleteOutlined />}
+                                                    onClick={() => handleDelete(entry)}
+                                                    className="flex-1"
+                                                >
+                                                    Delete
+                                                </Button>
+                                            </div>
+                                        </Card>
+                                    );
+                                })}
+                            {filteredEntries.length === 0 && (
+                                <div className="text-center py-12 text-gray-400">
+                                    No entries found
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Mobile Pagination */}
+                        {filteredEntries.length > mobilePageSize && (
+                            <div className="flex justify-center py-3 border-t border-gray-100 bg-white">
+                                <Space>
+                                    <Button
+                                        size="small"
+                                        disabled={mobilePage === 1}
+                                        onClick={() => setMobilePage(mobilePage - 1)}
+                                    >
+                                        Previous
+                                    </Button>
+                                    <span className="text-sm text-gray-600">
+                                        Page {mobilePage} of {Math.ceil(filteredEntries.length / mobilePageSize)}
+                                    </span>
+                                    <Button
+                                        size="small"
+                                        disabled={mobilePage >= Math.ceil(filteredEntries.length / mobilePageSize)}
+                                        onClick={() => setMobilePage(mobilePage + 1)}
+                                    >
+                                        Next
+                                    </Button>
+                                </Space>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    /* Desktop Table View */
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm flex-1 flex flex-col overflow-hidden">
+                        <div className="flex-1 overflow-hidden">
+                            <Table
+                                columns={columns}
+                                dataSource={filteredEntries}
+                                rowKey="id"
+                                pagination={{
+                                    pageSize: 50,
+                                    position: ['bottomCenter'],
+                                    showSizeChanger: false,
+                                    showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} entries`,
+                                    className: 'sticky-pagination'
+                                }}
+                                className="custom-table"
+                                scroll={{ y: 'calc(100vh - 450px)', x: 'max-content' }}
+                                rowSelection={{
+                                    type: 'checkbox',
+                                }}
+                                onChange={(pagination, filters, sorter, extra) => {
+                                    console.log('params', pagination, filters, sorter, extra);
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
             </div>
 
             <Modal
