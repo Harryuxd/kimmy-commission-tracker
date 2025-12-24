@@ -19,8 +19,15 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
     const mobilePageSize = 10;
     const [notes, setNotes] = useState(() => {
         // Load notes array from localStorage on initial mount
-        const savedNotes = localStorage.getItem('kimmy-dashboard-notes');
-        return savedNotes ? JSON.parse(savedNotes) : [];
+        try {
+            const savedNotes = localStorage.getItem('kimmy-dashboard-notes');
+            return savedNotes ? JSON.parse(savedNotes) : [];
+        } catch (error) {
+            // If parsing fails (corrupted data), clear it and return empty array
+            console.warn('Failed to parse notes from localStorage, resetting:', error);
+            localStorage.removeItem('kimmy-dashboard-notes');
+            return [];
+        }
     });
     const [newNoteText, setNewNoteText] = useState('');
 
