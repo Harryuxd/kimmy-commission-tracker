@@ -441,79 +441,10 @@ export default function Dashboard({ staff, entries, onAddEntry, onEditEntry, onD
                                 </div>
                             </Card>
                         </div>
-
-                        {/* Notes Card */}
-                        <div className="flex-1">
-                            <Card
-                                bordered={false}
-                                className="shadow-sm rounded-xl bg-white h-full"
-                                bodyStyle={{ padding: '12px 24px', display: 'flex', flexDirection: 'column', height: '100%' }}
-                                title={
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-bold text-gray-800 text-sm">Notes</span>
-                                        <span className="text-xs text-gray-500">{notes.length} note{notes.length !== 1 ? 's' : ''}</span>
-                                    </div>
-                                }
-                            >
-                                {/* Add Note Input */}
-                                <div className="flex gap-2 mb-3">
-                                    <input
-                                        type="text"
-                                        value={newNoteText}
-                                        onChange={(e) => setNewNoteText(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && addNote()}
-                                        placeholder="Add a note..."
-                                        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                                    />
-                                    <Button
-                                        type="primary"
-                                        icon={<PlusOutlined />}
-                                        onClick={addNote}
-                                        disabled={!newNoteText.trim()}
-                                        className="bg-pink-500 hover:bg-pink-600 border-none"
-                                    >
-                                        Add
-                                    </Button>
-                                </div>
-
-                                {/* Notes List */}
-                                <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
-                                    {notes.length === 0 ? (
-                                        <div className="text-center py-8 text-gray-400 text-sm">
-                                            No notes yet. Add one above!
-                                        </div>
-                                    ) : (
-                                        notes.map((note) => (
-                                            <div
-                                                key={note.id}
-                                                className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-gray-200 transition-colors group"
-                                            >
-                                                <div className="flex justify-between items-start gap-2">
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm text-gray-700 mb-1 break-words">{note.text}</p>
-                                                        <span className="text-xs text-gray-400">
-                                                            {dayjs(note.timestamp).format('MMM D, YYYY h:mm A')}
-                                                        </span>
-                                                    </div>
-                                                    <Button
-                                                        type="text"
-                                                        size="small"
-                                                        danger
-                                                        icon={<DeleteOutlined />}
-                                                        onClick={() => deleteNote(note.id)}
-                                                        className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </Card>
-                        </div>
                     </div>
 
                     {/* Bottom Row: Main Table */}
-                    <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-hidden">
+                    <div className="flex-1 flex flex-col gap-3 md:gap-4 overflow-hidden" style={{ marginTop: '32px' }}>
                         {/* Controls - Stack on mobile */}
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-start sm:items-center w-full sm:w-auto">
