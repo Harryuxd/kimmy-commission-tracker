@@ -1,6 +1,6 @@
 
 import { useState, useMemo, useEffect } from 'react';
-import { Table, Button, Modal, Form, Select, InputNumber, DatePicker, Radio, Tag, Row, Col, Space, Card, Progress, Tabs } from 'antd';
+import { Table, Button, Modal, Form, Select, InputNumber, DatePicker, Radio, Tag, Row, Col, Space, Card, Progress, Tabs, Segmented } from 'antd';
 import { PlusOutlined, DeleteOutlined, ArrowUpOutlined, DollarOutlined, CalendarOutlined, EditOutlined, DownloadOutlined, ExclamationCircleOutlined, DashboardOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { getAvatarColor } from '../utils/colorUtils';
