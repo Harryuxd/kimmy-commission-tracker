@@ -64,8 +64,9 @@ export default function Dashboard({ entries, setEntries, staff, onAddEntry, onEd
             cancelButtonProps: {
                 type: 'default'
             },
-            onOk() {
-                onDeleteEntry(entry.id);
+            async onOk() {
+                console.log('Modal onOk called for entry:', entry.id);
+                await onDeleteEntry(entry.id);
             },
         });
     };

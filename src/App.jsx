@@ -121,8 +121,15 @@ function App() {
   };
 
   const deleteEntry = async (id) => {
+    console.log('Deleting entry with id:', id);
     const { error } = await supabase.from('entries').delete().eq('id', id);
-    if (!error) setEntries(entries.filter(e => e.id !== id));
+    if (!error) {
+      console.log('Delete successful, updating state');
+      setEntries(entries.filter(e => e.id !== id));
+    } else {
+      console.error('Delete error:', error);
+      alert('Error deleting entry: ' + error.message);
+    }
   };
 
   const handleLogout = async () => await supabase.auth.signOut();
