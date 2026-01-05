@@ -8,7 +8,7 @@ import { serviceList } from '../data/serviceList';
 
 const { Option } = Select;
 
-export default function Dashboard({ entries, setEntries, staff }) {
+export default function Dashboard({ entries, setEntries, staff, onAddEntry, onEditEntry, onDeleteEntry }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEntry, setEditingEntry] = useState(null);
     const [form] = Form.useForm();
