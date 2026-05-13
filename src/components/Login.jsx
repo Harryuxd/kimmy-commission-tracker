@@ -5,6 +5,7 @@ import { MailOutlined, SendOutlined } from '@ant-design/icons';
 import kimmyLogo from '../assets/Kimmy_logo.png';
 
 const { Title, Text } = Typography;
+const SITE_URL = 'https://kimmystracker.netlify.app';
 
 export default function Login() {
     const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function Login() {
         const { error } = await supabase.auth.signInWithOtp({
             email,
             options: {
-                emailRedirectTo: window.location.origin,
+                emailRedirectTo: SITE_URL,
             },
         });
 
