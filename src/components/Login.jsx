@@ -47,7 +47,20 @@ export default function Login() {
     const handleVerifyCode = async (values) => {
         setVerifyingCode(true);
         setMessage('');
-        const { token } = values;
+        let { token } = values;
+        token = (token || '').trim();
+
+        // If user pasted the full URL or a query string, extract the token param
+        try {
+            // try as URL first
+            const maybeUrl = new URL(token);
+            const p = maybeUrl.searchParams.get('token');
+            if (p) token = p;
+        } catch (e) {
+            // fallback: look for token=... in the string
+            const m = token.match(/token=([^&\s]+)/);
+            if (m) token = decodeURIComponent(m[1]);
+        }
 
         const { error } = await supabase.auth.verifyOtp({
             email,
@@ -209,7 +222,7 @@ export default function Login() {
                                 name="token"
                                 rules={[
                                     { required: true, message: 'Please enter the code from your email' },
-                                    { min: 20, message: 'Code is too short' }
+                                    // allow short numeric codes or full tokens; server will validate
                                 ]}
                             >
                                 <Input
