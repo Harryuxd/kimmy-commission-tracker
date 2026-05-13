@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Card, Button, Form, Input, Alert, Typography, Tabs } from 'antd';
+import { Card, Button, Form, Input, Alert, Typography, Checkbox } from 'antd';
 import { MailOutlined, SendOutlined, LockOutlined } from '@ant-design/icons';
 import kimmyLogo from '../assets/Kimmy_logo.png';
 
@@ -17,8 +17,15 @@ export default function Login() {
     const handleSendCode = async (values) => {
         setLoading(true);
         setMessage('');
-        const { email: emailValue } = values;
+        const { email: emailValue, rememberMe } = values;
         setEmail(emailValue);
+
+        // Store remember me preference
+        if (rememberMe) {
+            localStorage.setItem('kimmy_remember_me', 'true');
+        } else {
+            localStorage.removeItem('kimmy_remember_me');
+        }
 
         const { error } = await supabase.auth.signInWithOtp({
             email: emailValue,
@@ -136,6 +143,12 @@ export default function Login() {
                                     fontSize: '15px'
                                 }}
                             />
+                        </Form.Item>
+
+                        <Form.Item name="rememberMe" valuePropName="checked" initialValue={true}>
+                            <Checkbox style={{ color: '#6b7280', fontSize: '14px' }}>
+                                Keep me signed in for 30 days
+                            </Checkbox>
                         </Form.Item>
 
                         <Form.Item style={{ marginBottom: 0 }}>
