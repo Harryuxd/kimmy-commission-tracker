@@ -39,7 +39,7 @@ export default function Login() {
             setLoading(false);
         } else {
             setCodeSent(true);
-            setMessage({ type: 'success', text: 'Magic link sent! Check your email. You can also enter the code below.' });
+            setMessage({ type: 'success', text: 'Magic link sent! Check your email.' });
             setLoading(false);
         }
     };
