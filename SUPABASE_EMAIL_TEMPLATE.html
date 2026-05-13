@@ -1,0 +1,48 @@
+<div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f9f9f9; padding: 20px; text-align: center;">
+  <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <img src="https://kimmysbeautybar.com/wp-content/uploads/2023/10/logo.png" alt="Kimmy's Beauty Bar" style="width: 150px; height: auto; margin-bottom: 10px;">
+    
+    <h1 style="color: #EC5598; margin: 0 0 5px 0; font-size: 24px;">Kimmy's Beauty Bar</h1>
+    <p style="color: #999; font-size: 14px; margin-top: 0; letter-spacing: 1px;">COMMISSION TRACKER</p>
+    
+    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+    
+    <h2 style="color: #333; margin-bottom: 20px;">Log In to Your Dashboard</h2>
+    
+    <p style="color: #666; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
+      Click the button below to sign in securely. No password required.
+    </p>
+    
+    <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #EC5598; color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; font-size: 16px; border-bottom: 3px solid #d43f80;">
+      ✨ Sign In to Dashboard
+    </a>
+    
+    <p style="color: #999; font-size: 12px; margin-top: 40px;">
+      If you didn't request this link, you can safely ignore this email.
+    </p>
+  </div>
+
+  <div style="width: 100%; margin: 32px 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px; color: #333333; word-break: break-word;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+      <tr>
+        <td align="center" style="padding: 20px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td align="center" style="padding-bottom: 16px; font-size: 14px; color: #666666;">
+                You're receiving this email because you signed up for an application
+                <a href="https://supabase.com/?utm_source=auth-email&utm_medium=email&utm_campaign=powered-by-supabase" style="color: #666666; text-decoration: underline;">
+                  powered by Supabase
+                </a> ⚡️
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="font-size: 12px; color: #666666;">
+                <a href="{{ .SiteURL }}/auth/verify?token={{ .Token }}&type=magiclink&redirect_to={{ .RedirectTo }}" style="color: #666666; text-decoration: underline;">Opt out of these emails</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
