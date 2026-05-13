@@ -10,12 +10,25 @@
     <h2 style="color: #333; margin-bottom: 20px;">Log In to Your Dashboard</h2>
     
     <p style="color: #666; font-size: 16px; line-height: 1.5; margin-bottom: 30px;">
-      Click the button below to sign in securely. No password required.
+      Choose one of the options below to sign in securely. No password required.
     </p>
-    
-    <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #EC5598; color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; font-size: 16px; border-bottom: 3px solid #d43f80;">
-      ✨ Sign In to Dashboard
-    </a>
+
+    <!-- Magic Link Button -->
+    <div style="margin-bottom: 30px;">
+      <p style="color: #999; font-size: 13px; margin-bottom: 12px;">Option 1: Click the magic link</p>
+      <a href="{{ .ConfirmationURL }}" style="display: inline-block; background-color: #EC5598; color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 5px; font-weight: bold; font-size: 16px; border-bottom: 3px solid #d43f80;">
+        ✨ Sign In to Dashboard
+      </a>
+    </div>
+
+    <!-- OTP Code Section -->
+    <div style="margin-bottom: 30px; padding: 20px; background-color: #f9f9f9; border-radius: 8px; border: 1px solid #eee;">
+      <p style="color: #999; font-size: 13px; margin-bottom: 12px;">Option 2: Copy and paste this code</p>
+      <div style="background-color: #ffffff; padding: 16px; border-radius: 6px; border: 2px solid #EC5598; font-family: 'Courier New', monospace; font-size: 18px; font-weight: bold; color: #EC5598; letter-spacing: 2px; word-break: break-all;">
+        {{ .Token }}
+      </div>
+      <p style="color: #999; font-size: 12px; margin-top: 12px;">Paste this code on the login page if the magic link doesn't work</p>
+    </div>
     
     <p style="color: #999; font-size: 12px; margin-top: 40px;">
       If you didn't request this link, you can safely ignore this email.
